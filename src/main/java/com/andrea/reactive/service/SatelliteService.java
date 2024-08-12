@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,13 +52,17 @@ public class SatelliteService {
         AtomicInteger updatedCount = new AtomicInteger();
 
         return httpService.getMany(urlApi, ExternalSatelliteApiResponse.class, Optional.of(queryParams))
-                .flatMap(apiResponse -> Flux.fromIterable(apiResponse.getMember()))
-                .flatMap(tleDto -> processSatellite(tleDto, newCount, updatedCount))
+                .flatMap(apiResponse -> Flux.fromIterable(apiResponse.getMember())
+                        .parallel()
+                        .runOn(Schedulers.boundedElastic())
+                        .flatMap(tleDto -> processSatellite(tleDto, newCount, updatedCount))
+                        .sequential()
+                )
                 .then(Mono.fromCallable(() -> new FetchSatelliteResponse(newCount.get(), updatedCount.get())))
                 .onErrorResume(e -> {
                     return Mono.error(new ExternalAPIException("Failed to fetch and update satellites"));
                 });
-                }
+    }
 
     private Mono<FetchSatelliteResult> processSatellite(TleDto tleDto, AtomicInteger newCount, AtomicInteger updatedCount) {
         return satelliteRepository.findByExtId(tleDto.getSatelliteId())
