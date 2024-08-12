@@ -2,6 +2,7 @@ package com.andrea.reactive.exception.handler;
 
 import com.andrea.reactive.exception.DatabaseOperationException;
 import com.andrea.reactive.exception.ExternalAPIException;
+import com.andrea.reactive.exception.SatelliteNotFoundException;
 import com.andrea.reactive.exception.ValidationException;
 import com.andrea.reactive.exception.dto.GlobalError;
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +17,13 @@ import java.time.ZonedDateTime;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(SatelliteNotFoundException.class)
+    public ResponseEntity<GlobalError> satelliteNotFoundException(SatelliteNotFoundException e) {
+        GlobalError error = createError(e.getMessage(), HttpStatus.NOT_FOUND);
+        logError(SatelliteNotFoundException.class.getSimpleName(), error, e);
+        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    }
 
     @ExceptionHandler(ValidationException.class)
     public ResponseEntity<GlobalError> handleValidationException(ValidationException e) {

@@ -9,6 +9,7 @@ import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
 import com.andrea.reactive.entity.Satellite;
 import com.andrea.reactive.exception.DatabaseOperationException;
 import com.andrea.reactive.exception.ExternalAPIException;
+import com.andrea.reactive.exception.SatelliteNotFoundException;
 import com.andrea.reactive.mapper.SatelliteMapper;
 import com.andrea.reactive.repository.SatelliteRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -18,11 +19,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -87,5 +87,11 @@ public class SatelliteService {
                     log.error("Error processing satellite", e);
                     return Mono.error(new DatabaseOperationException("Failed to process satellite with ExtID: " + tleDto.getSatelliteId()));
                 });
+    }
+
+    public Mono<SatelliteDto> getSatelliteByGuid(UUID guid) {
+        return satelliteRepository.findByGuid(guid)
+                .map(satellite -> satelliteMapper.satelliteToSatelliteDto(satellite))
+                .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)));
     }
 }
