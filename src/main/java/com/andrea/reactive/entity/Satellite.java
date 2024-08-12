@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
@@ -23,9 +24,12 @@ public class Satellite {
 
     private UUID guid;
 
+    @Column("ext_id")
+    private Integer extId;
+
     private String name;
 
-    private ZonedDateTime date;
+    private OffsetDateTime date;
 
     private String line1;
 
