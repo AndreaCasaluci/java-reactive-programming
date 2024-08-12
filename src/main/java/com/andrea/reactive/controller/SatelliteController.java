@@ -23,10 +23,11 @@ public class SatelliteController {
 
     @PostMapping
     public Mono<ResponseEntity<FetchSatelliteResponse>> fetchSatellitesFromExternalSource(
-            @RequestParam(name="size", defaultValue = "10") int size
+            @RequestParam(name=SatelliteConstants.FETCH_SIZE_PARAM_NAME, defaultValue = SatelliteConstants.FETCH_DEFAULT_SIZE_VALUE) int size
     ) {
 
-        if(size < 1 || size > 100) return Mono.error(new ValidationException("Invalid size parameter. Size must be between 1 and 100."));
+        if(size < SatelliteConstants.FETCH_MIN_SIZE_VALUE || size > SatelliteConstants.FETCH_MAX_SIZE_VALUE)
+            return Mono.error(new ValidationException("Invalid size parameter. Size must be between 1 and 100."));
 
         return satelliteService.fetchAndUpdateSatellites(size)
                 .map(response -> ResponseEntity.ok(response));
