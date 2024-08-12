@@ -2,10 +2,12 @@ package com.andrea.reactive.exception.handler;
 
 import com.andrea.reactive.exception.DatabaseOperationException;
 import com.andrea.reactive.exception.ExternalAPIException;
+import com.andrea.reactive.exception.ValidationException;
 import com.andrea.reactive.exception.dto.GlobalError;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -14,6 +16,20 @@ import java.time.ZonedDateTime;
 @Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<GlobalError> handleValidationException(ValidationException e) {
+        GlobalError error = createError(e.getMessage(), HttpStatus.BAD_REQUEST);
+        logError(ValidationException.class.getSimpleName(), error, e);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<GlobalError> handleValidationExceptions(MethodArgumentNotValidException e) {
+        GlobalError error = createError(e.getMessage(), HttpStatus.BAD_REQUEST);
+        logError(MethodArgumentNotValidException.class.getSimpleName(), error, e);
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(DatabaseOperationException.class)
     public ResponseEntity<GlobalError> databaseOperationException(DatabaseOperationException e) {

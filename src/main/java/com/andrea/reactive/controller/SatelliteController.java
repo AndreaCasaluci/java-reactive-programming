@@ -1,12 +1,12 @@
 package com.andrea.reactive.controller;
 
 import com.andrea.reactive.constants.SatelliteConstants;
-import com.andrea.reactive.dto.TleDto;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
-import com.andrea.reactive.exception.ExternalAPIException;
+import com.andrea.reactive.exception.ValidationException;
 import com.andrea.reactive.service.SatelliteService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
@@ -25,6 +25,9 @@ public class SatelliteController {
     public Mono<ResponseEntity<FetchSatelliteResponse>> fetchSatellitesFromExternalSource(
             @RequestParam(name="size", defaultValue = "10") int size
     ) {
+
+        if(size < 1 || size > 100) return Mono.error(new ValidationException("Invalid size parameter. Size must be between 1 and 100."));
+
         return satelliteService.fetchAndUpdateSatellites(size)
                 .map(response -> ResponseEntity.ok(response));
     }
