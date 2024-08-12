@@ -1,5 +1,6 @@
 package com.andrea.reactive.service;
 
+import com.andrea.reactive.constants.SatelliteConstants;
 import com.andrea.reactive.dto.SatelliteDto;
 import com.andrea.reactive.dto.TleDto;
 import com.andrea.reactive.dto.enumerator.FetchSatelliteResult;
@@ -43,8 +44,8 @@ public class SatelliteService {
 
     public Mono<FetchSatelliteResponse> fetchAndUpdateSatellites(int size) {
         Map<String, String> queryParams = new HashMap<>();
-        queryParams.put("page", String.valueOf(1));
-        queryParams.put("page-size", String.valueOf(size));
+        queryParams.put(SatelliteConstants.EXTERNAL_API_PAGE_PARAMETER_NAME, String.valueOf(SatelliteConstants.EXTERNAL_API_DEFAULT_PAGE_VALUE));
+        queryParams.put(SatelliteConstants.EXTERNAL_API_PAGE_SIZE_PARAMETER_NAME, String.valueOf(size));
 
         AtomicInteger newCount = new AtomicInteger();
         AtomicInteger updatedCount = new AtomicInteger();

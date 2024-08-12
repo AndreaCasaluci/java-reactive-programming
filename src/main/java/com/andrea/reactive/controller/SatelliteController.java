@@ -27,7 +27,7 @@ public class SatelliteController {
     ) {
 
         if(size < SatelliteConstants.FETCH_MIN_SIZE_VALUE || size > SatelliteConstants.FETCH_MAX_SIZE_VALUE)
-            return Mono.error(new ValidationException("Invalid size parameter. Size must be between 1 and 100."));
+            return Mono.error(new ValidationException("Invalid size parameter. Size must be between "+SatelliteConstants.FETCH_MIN_SIZE_VALUE+" and "+SatelliteConstants.FETCH_MAX_SIZE_VALUE+"."));
 
         return satelliteService.fetchAndUpdateSatellites(size)
                 .map(response -> ResponseEntity.ok(response));
