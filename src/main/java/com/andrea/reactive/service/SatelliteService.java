@@ -16,11 +16,17 @@ import com.andrea.reactive.mapper.SatelliteMapper;
 import com.andrea.reactive.repository.SatelliteRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import javax.swing.*;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,14 +41,16 @@ public class SatelliteService {
 
     private final SatelliteRepository satelliteRepository;
     private final SatelliteMapper satelliteMapper;
+    private final R2dbcEntityTemplate template;
 
     @Value("${satellite.api.url:https://tle.ivanstanojevic.me/api/tle/}")
     private String urlApi;
 
-    public SatelliteService(HttpService<ExternalSatelliteApiResponse> httpService, SatelliteRepository satelliteRepository, SatelliteMapper satelliteMapper) {
+    public SatelliteService(HttpService<ExternalSatelliteApiResponse> httpService, SatelliteRepository satelliteRepository, SatelliteMapper satelliteMapper, R2dbcEntityTemplate template) {
         this.httpService = httpService;
         this.satelliteRepository = satelliteRepository;
         this.satelliteMapper = satelliteMapper;
+        this.template = template;
     }
 
     public Mono<FetchSatelliteResponse> fetchAndUpdateSatellites(int size, Optional<Integer> chunkSizeOpt) {
@@ -155,4 +163,26 @@ public class SatelliteService {
                 .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)))
                 .flatMap(satellite -> satelliteRepository.delete(satellite));
     }
+
+    public Mono<Page<Satellite>> getSatellites(String name, String date, int page, int size, SortOrder nameOrder, SortOrder dateOrder) {
+        PageRequest pageRequest = PageRequest.of(page, size, getSort(nameOrder, dateOrder));
+        return this.satelliteRepository.findByNameContainingIgnoreCaseAndDateContainingIgnoreCase(name, date, pageRequest)
+                .collectList()
+                .zipWith(satelliteRepository.countByNameContainingIgnoreCaseAndDateContainingIgnoreCase(name, date))
+                .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
+    }
+
+    private Sort getSort(SortOrder nameOrder, SortOrder dateOrder) {
+        List<Sort.Order> orders = new ArrayList<>();
+
+        if (nameOrder != null) {
+            orders.add(new Sort.Order(nameOrder == SortOrder.ASCENDING ? Sort.Direction.ASC : Sort.Direction.DESC, "name"));
+        }
+        if (dateOrder != null) {
+            orders.add(new Sort.Order(dateOrder == SortOrder.DESCENDING ? Sort.Direction.ASC : Sort.Direction.DESC, "date"));
+        }
+
+        return Sort.by(orders);
+    }
+
 }

@@ -5,19 +5,21 @@ import com.andrea.reactive.dto.SatelliteDto;
 import com.andrea.reactive.dto.request.CreateSatelliteRequest;
 import com.andrea.reactive.dto.request.UpdateSatelliteRequest;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
-import com.andrea.reactive.exception.SatelliteNotFoundException;
+import com.andrea.reactive.entity.Satellite;
 import com.andrea.reactive.exception.ValidationException;
 import com.andrea.reactive.service.SatelliteService;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
-import java.util.Objects;
-import java.util.Optional;
-import java.util.UUID;
+import javax.swing.*;
+import java.util.*;
 
 @RestController
 @RequestMapping(SatelliteConstants.SATELLITE_BASE_PATH)
@@ -69,4 +71,19 @@ public class SatelliteController {
         return satelliteService.deleteSatellite(guid)
                 .then(Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).build()));
     }
+
+    @GetMapping(SatelliteConstants.GET_LIST_ENDPOINT)
+    public Mono<ResponseEntity<Page<Satellite>>> getList(
+            @RequestParam("page") int page,
+            @RequestParam("size") int size,
+            @RequestParam(required = false, defaultValue = "") String name,
+            @RequestParam(required = false, defaultValue = "") String date,
+            @RequestParam(required = false) SortOrder nameOrder,
+            @RequestParam(required = false) SortOrder dateOrder
+    ) {
+
+        return satelliteService.getSatellites(name, date, page, size, nameOrder, dateOrder)
+                .map(response -> ResponseEntity.ok(response));
+    }
+
 }

@@ -11,6 +11,8 @@ public class SatelliteConstants {
 
     public static final String FETCH_ENDPOINT = "/fetch";
 
+    public static final String GET_LIST_ENDPOINT = "/list";
+
     public static final String FETCH_SIZE_PARAM_NAME = "size";
     public static final String FETCH_CHUNK_SIZE_PARAM_NAME = "chunk-size";
     public static final String FETCH_DEFAULT_SIZE_VALUE = "10";
