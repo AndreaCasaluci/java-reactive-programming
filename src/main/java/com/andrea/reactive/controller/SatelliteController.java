@@ -12,6 +12,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -27,13 +28,14 @@ public class SatelliteController {
 
     @PostMapping
     public Mono<ResponseEntity<FetchSatelliteResponse>> fetchSatellitesFromExternalSource(
-            @RequestParam(name=SatelliteConstants.FETCH_SIZE_PARAM_NAME, defaultValue = SatelliteConstants.FETCH_DEFAULT_SIZE_VALUE) int size
+            @RequestParam(name=SatelliteConstants.FETCH_SIZE_PARAM_NAME, defaultValue = SatelliteConstants.FETCH_DEFAULT_SIZE_VALUE) int size,
+            @RequestParam(name=SatelliteConstants.FETCH_CHUNK_SIZE_PARAM_NAME) int chunkSize
     ) {
 
         if(size < SatelliteConstants.FETCH_MIN_SIZE_VALUE || size > SatelliteConstants.FETCH_MAX_SIZE_VALUE)
             return Mono.error(new ValidationException("Invalid size parameter. Size must be between "+SatelliteConstants.FETCH_MIN_SIZE_VALUE+" and "+SatelliteConstants.FETCH_MAX_SIZE_VALUE+"."));
 
-        return satelliteService.fetchAndUpdateSatellites(size)
+        return satelliteService.fetchAndUpdateSatellites(size, Optional.of(chunkSize))
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 

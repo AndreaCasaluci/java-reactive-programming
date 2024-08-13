@@ -1,5 +1,6 @@
 package com.andrea.reactive.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -12,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class HttpService<T> implements GenericWebClientService<T> {
 
     private final WebClient webClient;
@@ -21,7 +23,7 @@ public class HttpService<T> implements GenericWebClientService<T> {
     }
 
     @Override
-    public Flux<T> getMany(String uri, Class<T> responseType, Optional<Map<String, String>> queryParams) {
+    public Mono<T> getMany(String uri, Class<T> responseType, Optional<Map<String, String>> queryParams) {
 
         StringBuilder uriBuilder = new StringBuilder(uri);
 
@@ -37,10 +39,12 @@ public class HttpService<T> implements GenericWebClientService<T> {
             uriBuilder.setLength(uriBuilder.length() - 1);
         }
 
+        log.info(uriBuilder.toString());
+
         return webClient.get()
                 .uri(uriBuilder.toString())
                 .retrieve()
-                .bodyToFlux(responseType);
+                .bodyToMono(responseType);
     }
 
 }

@@ -19,10 +19,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Service
@@ -43,25 +42,43 @@ public class SatelliteService {
         this.satelliteMapper = satelliteMapper;
     }
 
-    public Mono<FetchSatelliteResponse> fetchAndUpdateSatellites(int size) {
-        Map<String, String> queryParams = new HashMap<>();
-        queryParams.put(SatelliteConstants.EXTERNAL_API_PAGE_PARAMETER_NAME, String.valueOf(SatelliteConstants.EXTERNAL_API_DEFAULT_PAGE_VALUE));
-        queryParams.put(SatelliteConstants.EXTERNAL_API_PAGE_SIZE_PARAMETER_NAME, String.valueOf(size));
+    public Mono<FetchSatelliteResponse> fetchAndUpdateSatellites(int size, Optional<Integer> chunkSizeOpt) {
+        int defaultPageSize = SatelliteConstants.EXTERNAL_API_MAX_PAGE_SIZE;
+        if(size < defaultPageSize) defaultPageSize = size;
+        int pageSize = chunkSizeOpt.orElse(defaultPageSize);
+        int totalPages = (int) Math.ceil((double) size / pageSize);
+        List<Mono<ExternalSatelliteApiResponse>> apiCalls = new ArrayList<>();
+
+        for (int i = 1; i <= totalPages; i++) {
+            Map<String, String> queryParams = new HashMap<>();
+
+            int currentPageSize = (i == totalPages) ? (size - (pageSize * (i - 1))) : pageSize;
+
+            queryParams.put(SatelliteConstants.EXTERNAL_API_PAGE_PARAMETER_NAME, String.valueOf(i));
+            queryParams.put(SatelliteConstants.EXTERNAL_API_PAGE_SIZE_PARAMETER_NAME, String.valueOf(currentPageSize));
+
+            apiCalls.add(httpService.getMany(urlApi, ExternalSatelliteApiResponse.class, Optional.of(queryParams)));
+        }
+
+        ConcurrentMap<Integer, Mono<FetchSatelliteResult>> satelliteIdToProcessing = new ConcurrentHashMap<>();
 
         AtomicInteger newCount = new AtomicInteger();
         AtomicInteger updatedCount = new AtomicInteger();
 
-        return httpService.getMany(urlApi, ExternalSatelliteApiResponse.class, Optional.of(queryParams))
+        return Flux.merge(apiCalls)
                 .flatMap(apiResponse -> Flux.fromIterable(apiResponse.getMember())
-                        .parallel()
-                        .runOn(Schedulers.boundedElastic())
-                        .flatMap(tleDto -> processSatellite(tleDto, newCount, updatedCount))
-                        .sequential()
+                        .concatMap(tleDto -> {
+                            int satelliteId = tleDto.getSatelliteId();
+
+                            return satelliteIdToProcessing
+                                    .computeIfAbsent(satelliteId, id -> processSatellite(tleDto, newCount, updatedCount)
+                                            .doFinally(signalType -> satelliteIdToProcessing.remove(satelliteId)));
+                        })
+                        .subscribeOn(Schedulers.boundedElastic())
                 )
                 .then(Mono.fromCallable(() -> new FetchSatelliteResponse(newCount.get(), updatedCount.get())))
-                .onErrorResume(e -> {
-                    return Mono.error(new ExternalAPIException("Failed to fetch and update satellites"));
-                });
+                .onErrorResume(e -> Mono.error(new ExternalAPIException("Failed to fetch and update satellites: Service Unavailable or Resource Limit Exceeded")));
+
     }
 
     private Mono<FetchSatelliteResult> processSatellite(TleDto tleDto, AtomicInteger newCount, AtomicInteger updatedCount) {
