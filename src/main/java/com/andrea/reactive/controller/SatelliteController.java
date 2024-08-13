@@ -63,4 +63,10 @@ public class SatelliteController {
         return satelliteService.updateSatellite(guid, request)
                 .map(response -> ResponseEntity.ok(response));
     }
+
+    @DeleteMapping("/{guid}")
+    public Mono<ResponseEntity<Void>> deleteSatelliteByGuid(@PathVariable UUID guid) {
+        return satelliteService.deleteSatellite(guid)
+                .then(Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).build()));
+    }
 }

@@ -149,4 +149,10 @@ public class SatelliteService {
                 })
                 .map(satelliteMapper::satelliteToSatelliteDto);
     }
+
+    public Mono<Void> deleteSatellite(UUID guid) {
+        return satelliteRepository.findByGuid(guid)
+                .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)))
+                .flatMap(satellite -> satelliteRepository.delete(satellite));
+    }
 }
