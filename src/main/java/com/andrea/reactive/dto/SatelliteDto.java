@@ -7,6 +7,7 @@ import java.util.UUID;
 
 @Data
 public class SatelliteDto {
+
     private UUID guid;
 
     private Integer extId;

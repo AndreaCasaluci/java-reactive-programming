@@ -2,16 +2,18 @@ package com.andrea.reactive.controller;
 
 import com.andrea.reactive.constants.SatelliteConstants;
 import com.andrea.reactive.dto.SatelliteDto;
+import com.andrea.reactive.dto.request.CreateSatelliteRequest;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
 import com.andrea.reactive.exception.ValidationException;
 import com.andrea.reactive.service.SatelliteService;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,14 +28,14 @@ public class SatelliteController {
         this.satelliteService = satelliteService;
     }
 
-    @PostMapping
+    @PostMapping(SatelliteConstants.FETCH_ENDPOINT)
     public Mono<ResponseEntity<FetchSatelliteResponse>> fetchSatellitesFromExternalSource(
             @RequestParam(name=SatelliteConstants.FETCH_SIZE_PARAM_NAME, defaultValue = SatelliteConstants.FETCH_DEFAULT_SIZE_VALUE) int size,
-            @RequestParam(name=SatelliteConstants.FETCH_CHUNK_SIZE_PARAM_NAME) int chunkSize
+            @RequestParam(name=SatelliteConstants.FETCH_CHUNK_SIZE_PARAM_NAME) Integer chunkSize
     ) {
 
-        if(size < SatelliteConstants.FETCH_MIN_SIZE_VALUE || size > SatelliteConstants.FETCH_MAX_SIZE_VALUE)
-            return Mono.error(new ValidationException("Invalid size parameter. Size must be between "+SatelliteConstants.FETCH_MIN_SIZE_VALUE+" and "+SatelliteConstants.FETCH_MAX_SIZE_VALUE+"."));
+        if(!Objects.isNull(chunkSize) && (chunkSize < SatelliteConstants.FETCH_MIN_CHUNK_SIZE_VALUE || chunkSize > SatelliteConstants.FETCH_MAX_CHUNK_SIZE_VALUE))
+            return Mono.error(new ValidationException("Invalid chunk-size parameter. It must be between "+SatelliteConstants.FETCH_MIN_CHUNK_SIZE_VALUE +" and "+SatelliteConstants.FETCH_MAX_CHUNK_SIZE_VALUE +"."));
 
         return satelliteService.fetchAndUpdateSatellites(size, Optional.of(chunkSize))
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
@@ -43,5 +45,11 @@ public class SatelliteController {
     public Mono<ResponseEntity<SatelliteDto>> getSatelliteById(@PathVariable UUID guid) {
         return satelliteService.getSatelliteByGuid(guid)
                 .map(response -> ResponseEntity.ok(response));
+    }
+
+    @PostMapping
+    public Mono<ResponseEntity<SatelliteDto>> createSatellite(@Valid @RequestBody CreateSatelliteRequest request) {
+        return satelliteService.createSatellite(request)
+                .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 }

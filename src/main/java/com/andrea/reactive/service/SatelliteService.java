@@ -4,6 +4,7 @@ import com.andrea.reactive.constants.SatelliteConstants;
 import com.andrea.reactive.dto.SatelliteDto;
 import com.andrea.reactive.dto.TleDto;
 import com.andrea.reactive.dto.enumerator.FetchSatelliteResult;
+import com.andrea.reactive.dto.request.CreateSatelliteRequest;
 import com.andrea.reactive.dto.response.externalApi.ExternalSatelliteApiResponse;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
 import com.andrea.reactive.entity.Satellite;
@@ -119,5 +120,21 @@ public class SatelliteService {
         return satelliteRepository.findByGuid(guid)
                 .map(satellite -> satelliteMapper.satelliteToSatelliteDto(satellite))
                 .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)));
+    }
+
+    public Mono<SatelliteDto> createSatellite(CreateSatelliteRequest request) {
+
+        SatelliteDto satelliteDto = satelliteMapper.createSatelliteRequestToSatelliteDto(request);
+
+        satelliteDto.setCreatedAt(OffsetDateTime.now());
+        satelliteDto.setUpdatedAt(OffsetDateTime.now());
+
+        Satellite convertedSatellite = satelliteMapper.satelliteDtoToSatellite(satelliteDto);
+
+        return satelliteRepository.save(convertedSatellite)
+                .flatMap(savedSatellite -> satelliteRepository.findById(savedSatellite.getId()))
+                .map(retrievedSatellite -> satelliteMapper.satelliteToSatelliteDto(retrievedSatellite));
+
+
     }
 }
