@@ -39,8 +39,6 @@ public class HttpService<T> implements GenericWebClientService<T> {
             uriBuilder.setLength(uriBuilder.length() - 1);
         }
 
-        log.info(uriBuilder.toString());
-
         return webClient.get()
                 .uri(uriBuilder.toString())
                 .retrieve()

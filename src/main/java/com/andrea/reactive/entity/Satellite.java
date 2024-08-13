@@ -7,7 +7,6 @@ import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
 import java.time.OffsetDateTime;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 @Getter
@@ -34,5 +33,11 @@ public class Satellite {
     private String line1;
 
     private String line2;
+
+    @Column("created_at")
+    private OffsetDateTime createdAt;
+
+    @Column("updated_at")
+    private OffsetDateTime updatedAt;
 
 }

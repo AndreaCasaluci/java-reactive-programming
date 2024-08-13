@@ -19,6 +19,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -88,6 +89,7 @@ public class SatelliteService {
                     existingSatellite.setDate(tleDto.getDate());
                     existingSatellite.setLine1(tleDto.getLine1());
                     existingSatellite.setLine2(tleDto.getLine2());
+                    existingSatellite.setUpdatedAt(OffsetDateTime.now());
 
                     updatedCount.incrementAndGet();
 
@@ -101,6 +103,8 @@ public class SatelliteService {
                                         .line1(tleDto.getLine1())
                                         .line2(tleDto.getLine2())
                                         .date(tleDto.getDate())
+                                        .createdAt(OffsetDateTime.now())
+                                        .updatedAt(OffsetDateTime.now())
                                         .build())
                                 .doOnSuccess(savedSatellite -> newCount.incrementAndGet())
                                 .then(Mono.just(FetchSatelliteResult.NEW))

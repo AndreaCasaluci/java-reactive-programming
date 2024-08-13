@@ -7,5 +7,7 @@ CREATE TABLE satellite (
                            name VARCHAR(255),
                            date TIMESTAMP WITH TIME ZONE,
                            line1 VARCHAR(255),
-                           line2 VARCHAR(255)
+                           line2 VARCHAR(255),
+                           created_at TIMESTAMP WITH TIME ZONE default now(),
+                           updated_at TIMESTAMP WITH TIME ZONE default now()
 );
