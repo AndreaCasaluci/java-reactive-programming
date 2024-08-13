@@ -2,9 +2,11 @@ package com.andrea.reactive.mapper;
 
 import com.andrea.reactive.dto.SatelliteDto;
 import com.andrea.reactive.dto.request.CreateSatelliteRequest;
+import com.andrea.reactive.dto.request.UpdateSatelliteRequest;
 import com.andrea.reactive.entity.Satellite;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 @Mapper
@@ -23,4 +25,11 @@ public interface SatelliteMapper {
 
     @Mapping(target = "id", ignore = true)
     Satellite satelliteDtoToSatellite(SatelliteDto satelliteDto);
+
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "guid", ignore = true)
+    @Mapping(target = "extId", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    void updateSatelliteFromRequest(UpdateSatelliteRequest request, @MappingTarget Satellite existingSatellite);
 }

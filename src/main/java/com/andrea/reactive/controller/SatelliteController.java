@@ -3,7 +3,9 @@ package com.andrea.reactive.controller;
 import com.andrea.reactive.constants.SatelliteConstants;
 import com.andrea.reactive.dto.SatelliteDto;
 import com.andrea.reactive.dto.request.CreateSatelliteRequest;
+import com.andrea.reactive.dto.request.UpdateSatelliteRequest;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
+import com.andrea.reactive.exception.SatelliteNotFoundException;
 import com.andrea.reactive.exception.ValidationException;
 import com.andrea.reactive.service.SatelliteService;
 import jakarta.validation.Valid;
@@ -51,5 +53,14 @@ public class SatelliteController {
     public Mono<ResponseEntity<SatelliteDto>> createSatellite(@Valid @RequestBody CreateSatelliteRequest request) {
         return satelliteService.createSatellite(request)
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
+    }
+
+    @PutMapping("/{guid}")
+    public Mono<ResponseEntity<SatelliteDto>> updateSatellite(
+            @PathVariable UUID guid,
+            @Valid @RequestBody UpdateSatelliteRequest request) {
+
+        return satelliteService.updateSatellite(guid, request)
+                .map(response -> ResponseEntity.ok(response));
     }
 }
