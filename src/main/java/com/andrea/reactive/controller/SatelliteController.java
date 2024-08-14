@@ -77,12 +77,11 @@ public class SatelliteController {
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam(required = false, defaultValue = "") String name,
-            @RequestParam(required = false, defaultValue = "") String date,
             @RequestParam(required = false) SortOrder nameOrder,
             @RequestParam(required = false) SortOrder dateOrder
     ) {
 
-        return satelliteService.getSatellites(name, date, page, size, nameOrder, dateOrder)
+        return satelliteService.getSatellites(name, page, size, nameOrder, dateOrder)
                 .map(response -> ResponseEntity.ok(response));
     }
 

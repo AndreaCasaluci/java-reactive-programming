@@ -14,6 +14,7 @@ import com.andrea.reactive.exception.ExternalAPIException;
 import com.andrea.reactive.exception.SatelliteNotFoundException;
 import com.andrea.reactive.mapper.SatelliteMapper;
 import com.andrea.reactive.repository.SatelliteRepository;
+import com.andrea.reactive.repository.SatelliteSortingRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -40,15 +41,17 @@ public class SatelliteService {
     private final HttpService<ExternalSatelliteApiResponse> httpService;
 
     private final SatelliteRepository satelliteRepository;
+    private final SatelliteSortingRepository satelliteSortingRepository;
     private final SatelliteMapper satelliteMapper;
     private final R2dbcEntityTemplate template;
 
     @Value("${satellite.api.url:https://tle.ivanstanojevic.me/api/tle/}")
     private String urlApi;
 
-    public SatelliteService(HttpService<ExternalSatelliteApiResponse> httpService, SatelliteRepository satelliteRepository, SatelliteMapper satelliteMapper, R2dbcEntityTemplate template) {
+    public SatelliteService(HttpService<ExternalSatelliteApiResponse> httpService, SatelliteRepository satelliteRepository, SatelliteSortingRepository satelliteSortingRepository, SatelliteMapper satelliteMapper, R2dbcEntityTemplate template) {
         this.httpService = httpService;
         this.satelliteRepository = satelliteRepository;
+        this.satelliteSortingRepository = satelliteSortingRepository;
         this.satelliteMapper = satelliteMapper;
         this.template = template;
     }
@@ -164,11 +167,11 @@ public class SatelliteService {
                 .flatMap(satellite -> satelliteRepository.delete(satellite));
     }
 
-    public Mono<Page<Satellite>> getSatellites(String name, String date, int page, int size, SortOrder nameOrder, SortOrder dateOrder) {
+    public Mono<Page<Satellite>> getSatellites(String name, int page, int size, SortOrder nameOrder, SortOrder dateOrder) {
         PageRequest pageRequest = PageRequest.of(page, size, getSort(nameOrder, dateOrder));
-        return this.satelliteRepository.findByNameContainingIgnoreCaseAndDateContainingIgnoreCase(name, date, pageRequest)
+        return satelliteSortingRepository.findByNameContainingIgnoreCase(name, pageRequest)
                 .collectList()
-                .zipWith(satelliteRepository.countByNameContainingIgnoreCaseAndDateContainingIgnoreCase(name, date))
+                .zipWith(satelliteSortingRepository.countByNameContainingIgnoreCase(name))
                 .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
     }
 
