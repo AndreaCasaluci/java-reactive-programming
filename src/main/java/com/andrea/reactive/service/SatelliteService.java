@@ -6,6 +6,7 @@ import com.andrea.reactive.dto.TleDto;
 import com.andrea.reactive.dto.enumerator.FetchSatelliteResult;
 import com.andrea.reactive.dto.request.CreateSatelliteRequest;
 import com.andrea.reactive.dto.request.UpdateSatelliteRequest;
+import com.andrea.reactive.dto.response.GenericPagedResponse;
 import com.andrea.reactive.dto.response.externalApi.ExternalSatelliteApiResponse;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
 import com.andrea.reactive.entity.Satellite;
@@ -15,6 +16,7 @@ import com.andrea.reactive.exception.SatelliteNotFoundException;
 import com.andrea.reactive.mapper.SatelliteMapper;
 import com.andrea.reactive.repository.SatelliteRepository;
 import com.andrea.reactive.repository.SatelliteSortingRepository;
+import com.andrea.reactive.utils.PageUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -167,22 +169,23 @@ public class SatelliteService {
                 .flatMap(satellite -> satelliteRepository.delete(satellite));
     }
 
-    public Mono<Page<Satellite>> getSatellites(String name, int page, int size, SortOrder nameOrder, SortOrder dateOrder) {
+    public Mono<GenericPagedResponse> getSatellites(String name, int page, int size, SortOrder nameOrder, SortOrder dateOrder) {
         PageRequest pageRequest = PageRequest.of(page, size, getSort(nameOrder, dateOrder));
         return satelliteSortingRepository.findByNameContainingIgnoreCase(name, pageRequest)
+                .map(satelliteMapper::satelliteToSatelliteDto)
                 .collectList()
                 .zipWith(satelliteSortingRepository.countByNameContainingIgnoreCase(name))
-                .map(t -> new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
+                .map(t -> PageUtil.getGenericPage(new PageImpl<>(t.getT1(), pageRequest, t.getT2())));
     }
 
     private Sort getSort(SortOrder nameOrder, SortOrder dateOrder) {
         List<Sort.Order> orders = new ArrayList<>();
 
         if (nameOrder != null) {
-            orders.add(new Sort.Order(nameOrder == SortOrder.ASCENDING ? Sort.Direction.ASC : Sort.Direction.DESC, "name"));
+            orders.add(new Sort.Order(nameOrder == SortOrder.ASCENDING ? Sort.Direction.ASC : Sort.Direction.DESC, SatelliteConstants.NAME_PROPERTY));
         }
         if (dateOrder != null) {
-            orders.add(new Sort.Order(dateOrder == SortOrder.DESCENDING ? Sort.Direction.ASC : Sort.Direction.DESC, "date"));
+            orders.add(new Sort.Order(dateOrder == SortOrder.DESCENDING ? Sort.Direction.ASC : Sort.Direction.DESC, SatelliteConstants.DATE_PROPERTY));
         }
 
         return Sort.by(orders);

@@ -23,4 +23,7 @@ public class SatelliteConstants {
     public static final int EXTERNAL_API_DEFAULT_PAGE_VALUE = 1;
     public static final int EXTERNAL_API_MAX_PAGE_SIZE = 100;
     public static final String EXTERNAL_API_PAGE_SIZE_PARAMETER_NAME = "page-size";
+
+    public static final String NAME_PROPERTY = "name";
+    public static final String DATE_PROPERTY = "date";
 }

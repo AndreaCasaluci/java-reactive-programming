@@ -4,6 +4,7 @@ import com.andrea.reactive.constants.SatelliteConstants;
 import com.andrea.reactive.dto.SatelliteDto;
 import com.andrea.reactive.dto.request.CreateSatelliteRequest;
 import com.andrea.reactive.dto.request.UpdateSatelliteRequest;
+import com.andrea.reactive.dto.response.GenericPagedResponse;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
 import com.andrea.reactive.entity.Satellite;
 import com.andrea.reactive.exception.ValidationException;
@@ -73,7 +74,7 @@ public class SatelliteController {
     }
 
     @GetMapping(SatelliteConstants.GET_LIST_ENDPOINT)
-    public Mono<ResponseEntity<Page<Satellite>>> getList(
+    public Mono<ResponseEntity<GenericPagedResponse>> getList(
             @RequestParam("page") int page,
             @RequestParam("size") int size,
             @RequestParam(required = false, defaultValue = "") String name,
