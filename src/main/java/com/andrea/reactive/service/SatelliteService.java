@@ -58,6 +58,9 @@ public class SatelliteService {
     }
 
     public Mono<FetchSatelliteResponse> fetchAndUpdateSatellites(int size, Optional<Integer> chunkSizeOpt) {
+
+        log.info("Start method - fetchAndUpdateSatellites - size: {}", size);
+
         int defaultPageSize = SatelliteConstants.EXTERNAL_API_MAX_PAGE_SIZE;
         if(size < defaultPageSize) defaultPageSize = size;
         int pageSize = chunkSizeOpt.orElse(defaultPageSize);
@@ -91,7 +94,10 @@ public class SatelliteService {
                         })
                         .subscribeOn(Schedulers.boundedElastic())
                 )
-                .then(Mono.fromCallable(() -> new FetchSatelliteResponse(newCount.get(), updatedCount.get())))
+                .then(Mono.fromCallable(() -> {
+                    log.info("End method - fetchAndUpdateSatellites - size: {}", size);
+                    return new FetchSatelliteResponse(newCount.get(), updatedCount.get());
+                }))
                 .onErrorResume(e -> Mono.error(new ExternalAPIException("Failed to fetch and update satellites: Service Unavailable or Resource Limit Exceeded")));
 
     }
@@ -130,12 +136,21 @@ public class SatelliteService {
     }
 
     public Mono<SatelliteDto> getSatelliteByGuid(UUID guid) {
+
+        log.info("Start method - getSatelliteByGuid - guid: {}", guid);
+
         return satelliteRepository.findByGuid(guid)
-                .map(satellite -> satelliteMapper.satelliteToSatelliteDto(satellite))
+                .map(satellite -> {
+                    log.info("End method - getSatelliteByGuid - guid: {}", guid);
+                    return satelliteMapper.satelliteToSatelliteDto(satellite);
+                })
                 .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)));
+
     }
 
     public Mono<SatelliteDto> createSatellite(CreateSatelliteRequest request) {
+
+        log.info("Start method - createSatellite");
 
         SatelliteDto satelliteDto = satelliteMapper.createSatelliteRequestToSatelliteDto(request);
 
@@ -146,12 +161,18 @@ public class SatelliteService {
 
         return satelliteRepository.save(convertedSatellite)
                 .flatMap(savedSatellite -> satelliteRepository.findById(savedSatellite.getId()))
-                .map(retrievedSatellite -> satelliteMapper.satelliteToSatelliteDto(retrievedSatellite));
+                .map(retrievedSatellite -> {
+                    log.info("End method - createSatellite");
+                    return satelliteMapper.satelliteToSatelliteDto(retrievedSatellite);
+                });
 
 
     }
 
     public Mono<SatelliteDto> updateSatellite(UUID guid, UpdateSatelliteRequest request) {
+
+        log.info("Start method - updateSatellite - guid: {}", guid);
+
         return satelliteRepository.findByGuid(guid)
                 .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)))
                 .flatMap(existingSatellite -> {
@@ -159,22 +180,35 @@ public class SatelliteService {
                     existingSatellite.setUpdatedAt(OffsetDateTime.now());
                     return satelliteRepository.save(existingSatellite);
                 })
-                .map(satelliteMapper::satelliteToSatelliteDto);
+                .map(satellite -> {
+                    log.info("End method - updateSatellite - guid: {}", guid);
+                    return satelliteMapper.satelliteToSatelliteDto(satellite);
+                });
     }
 
     public Mono<Void> deleteSatellite(UUID guid) {
+
+        log.info("Start method - deleteSatellite - guid: {}", guid);
+
         return satelliteRepository.findByGuid(guid)
                 .switchIfEmpty(Mono.error(new SatelliteNotFoundException("Satellite not found by GUID "+guid)))
-                .flatMap(satellite -> satelliteRepository.delete(satellite));
+                .flatMap(satellite -> satelliteRepository.delete(satellite))
+                .doOnSuccess(r -> log.info("End method - deleteSatellite - guid: {}", guid));
     }
 
     public Mono<GenericPagedResponse> getSatellites(String name, int page, int size, SortOrder nameOrder, SortOrder dateOrder) {
+
+        log.info("Start method - getSatellites - page: {} - size: {} - name: {} - nameOrder: {} - dateOrder: {}", page, size, name, nameOrder, dateOrder);
+
         PageRequest pageRequest = PageRequest.of(page, size, getSort(nameOrder, dateOrder));
         return satelliteSortingRepository.findByNameContainingIgnoreCase(name, pageRequest)
                 .map(satelliteMapper::satelliteToSatelliteDto)
                 .collectList()
                 .zipWith(satelliteSortingRepository.countByNameContainingIgnoreCase(name))
-                .map(t -> PageUtil.getGenericPage(new PageImpl<>(t.getT1(), pageRequest, t.getT2())));
+                .map(t -> {
+                    log.info("End method - getSatellites - page: {} - size: {} - name: {} - nameOrder: {} - dateOrder: {}", page, size, name, nameOrder, dateOrder);
+                    return PageUtil.getGenericPage(new PageImpl<>(t.getT1(), pageRequest, t.getT2()));
+                });
     }
 
     private Sort getSort(SortOrder nameOrder, SortOrder dateOrder) {

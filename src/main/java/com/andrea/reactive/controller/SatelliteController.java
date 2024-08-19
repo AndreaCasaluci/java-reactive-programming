@@ -35,22 +35,33 @@ public class SatelliteController {
             @RequestParam(name=SatelliteConstants.FETCH_CHUNK_SIZE_PARAM_NAME) Integer chunkSize
     ) {
 
+        log.info("Start method - fetchSatellitesFromExternalSource - size: {} - chunkSize: {}", size, chunkSize);
+
         if(!Objects.isNull(chunkSize) && (chunkSize < SatelliteConstants.FETCH_MIN_CHUNK_SIZE_VALUE || chunkSize > SatelliteConstants.FETCH_MAX_CHUNK_SIZE_VALUE))
             return Mono.error(new ValidationException("Invalid chunk-size parameter. It must be between "+SatelliteConstants.FETCH_MIN_CHUNK_SIZE_VALUE +" and "+SatelliteConstants.FETCH_MAX_CHUNK_SIZE_VALUE +"."));
 
         return satelliteService.fetchAndUpdateSatellites(size, Optional.of(chunkSize))
+                .doOnSuccess(response -> log.info("End method - fetchSatellitesFromExternalSource - size: {} - chunkSize: {}", size, chunkSize))
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 
     @GetMapping("/{guid}")
     public Mono<ResponseEntity<SatelliteDto>> getSatelliteById(@PathVariable UUID guid) {
+
+        log.info("Start method - getSatelliteById - guid: {}", guid);
+
         return satelliteService.getSatelliteByGuid(guid)
+                .doOnSuccess(response -> log.info("End method - getSatelliteById - guid: {}", guid))
                 .map(response -> ResponseEntity.ok(response));
     }
 
     @PostMapping
     public Mono<ResponseEntity<SatelliteDto>> createSatellite(@Valid @RequestBody CreateSatelliteRequest request) {
+
+        log.info("Start method - createSatellite");
+
         return satelliteService.createSatellite(request)
+                .doOnSuccess(response -> log.info("End method - createSatellite"))
                 .map(response -> ResponseEntity.status(HttpStatus.CREATED).body(response));
     }
 
@@ -59,13 +70,20 @@ public class SatelliteController {
             @PathVariable UUID guid,
             @Valid @RequestBody UpdateSatelliteRequest request) {
 
+        log.info("Start method - updateSatellite - guid: {}", guid);
+
         return satelliteService.updateSatellite(guid, request)
+                .doOnSuccess(response -> log.info("End method - updateSatellite - guid: {}", guid))
                 .map(response -> ResponseEntity.ok(response));
     }
 
     @DeleteMapping("/{guid}")
     public Mono<ResponseEntity<Void>> deleteSatelliteByGuid(@PathVariable UUID guid) {
+
+        log.info("Start method - deleteSatelliteByGuid - guid: {}", guid);
+
         return satelliteService.deleteSatellite(guid)
+                .doOnSuccess(response -> log.info("End method - deleteSatelliteByGuid - guid: {}", guid))
                 .then(Mono.just(ResponseEntity.status(HttpStatus.NO_CONTENT).build()));
     }
 
@@ -78,7 +96,10 @@ public class SatelliteController {
             @RequestParam(required = false) SortOrder dateOrder
     ) {
 
+        log.info("Start method - getList - page: {} - size: {} - name: {} - nameOrder: {} - dateOrder: {}", page, size, name, nameOrder, dateOrder);
+
         return satelliteService.getSatellites(name, page, size, nameOrder, dateOrder)
+                .doOnSuccess(response ->  log.info("Start method - getList - page: {} - size: {} - name: {} - nameOrder: {} - dateOrder: {}", page, size, name, nameOrder, dateOrder))
                 .map(response -> ResponseEntity.ok(response));
 
     }
