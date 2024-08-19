@@ -6,7 +6,6 @@ import com.andrea.reactive.dto.request.UpdateSatelliteRequest;
 import com.andrea.reactive.dto.response.externalApi.ExternalSatelliteApiResponse;
 import com.andrea.reactive.dto.response.externalApi.FetchSatelliteResponse;
 import com.andrea.reactive.service.HttpService;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,7 +63,6 @@ public class SatelliteControllerTest {
 
     @BeforeEach
     void setUp() {
-
         webTestClient = WebTestClient.bindToServer().baseUrl("http://localhost:"+port).build();
 
         databaseClient.sql("DROP TABLE IF EXISTS satellite").then().block();
@@ -88,6 +86,11 @@ public class SatelliteControllerTest {
 
         databaseClient.sql(createSchema).then().block();
         databaseClient.sql(insertData).then().block();
+    }
+
+    @AfterEach
+    void tearDown() {
+        databaseClient.sql("DROP TABLE IF EXISTS satellite").then().block();
     }
 
     @Test
@@ -182,11 +185,6 @@ public class SatelliteControllerTest {
                     assert responseBody.getNewCount() == 2;
                     assert responseBody.getUpdatedCount() == 0;
                 });
-    }
-
-    @AfterEach
-    void resetDatabase() {
-        databaseClient.sql("DROP TABLE IF EXISTS satellite").then().block();
     }
 
 }
