@@ -13,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -31,17 +32,25 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static reactor.core.publisher.Mono.when;
 
 @ExtendWith({SpringExtension.class, MockitoExtension.class})
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class SatelliteControllerTest {
 
+    @Value("${database.name}")
+    private static String databaseName;
+
+    @Value("${database.username}")
+    private static String databaseUsername;
+
+    @Value("${database.password}")
+    private static String databasePassword;
+
     @Container
     public static PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:15")
-            .withDatabaseName("satellites_test")
-            .withUsername("poc")
-            .withPassword("password");
+            .withDatabaseName(databaseName)
+            .withUsername(databaseUsername)
+            .withPassword(databasePassword);
 
     @Autowired
     private DatabaseClient databaseClient;
