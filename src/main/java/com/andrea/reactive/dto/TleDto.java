@@ -1,10 +1,12 @@
 package com.andrea.reactive.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.time.OffsetDateTime;
 
 @Data
+@AllArgsConstructor
 public class TleDto {
 
     private int satelliteId;
