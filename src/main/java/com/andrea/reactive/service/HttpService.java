@@ -37,10 +37,15 @@ public class HttpService<T> implements GenericWebClientService<T> {
             uriBuilder.setLength(uriBuilder.length() - 1);
         }
 
+        String finalUri = uriBuilder.toString();
+
+        log.info("Start method - getMany - URI: {}", finalUri);
+
         return webClient.get()
-                .uri(uriBuilder.toString())
+                .uri(finalUri)
                 .retrieve()
-                .bodyToMono(responseType);
+                .bodyToMono(responseType)
+                .doOnSuccess(response -> log.info("End method - getMany - URI: {}", finalUri));
     }
 
 }
