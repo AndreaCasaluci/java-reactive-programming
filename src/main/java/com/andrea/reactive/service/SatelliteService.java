@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.r2dbc.core.R2dbcEntityTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -46,17 +45,15 @@ public class SatelliteService {
     private final SatelliteRepository satelliteRepository;
     private final SatelliteSortingRepository satelliteSortingRepository;
     private final SatelliteMapper satelliteMapper;
-    private final R2dbcEntityTemplate template;
 
     @Value("${satellite.api.url:https://tle.ivanstanojevic.me/api/tle/}")
     private String urlApi;
 
-    public SatelliteService(HttpService<ExternalSatelliteApiResponse> httpService, SatelliteRepository satelliteRepository, SatelliteSortingRepository satelliteSortingRepository, SatelliteMapper satelliteMapper, R2dbcEntityTemplate template) {
+    public SatelliteService(HttpService<ExternalSatelliteApiResponse> httpService, SatelliteRepository satelliteRepository, SatelliteSortingRepository satelliteSortingRepository, SatelliteMapper satelliteMapper) {
         this.httpService = httpService;
         this.satelliteRepository = satelliteRepository;
         this.satelliteSortingRepository = satelliteSortingRepository;
         this.satelliteMapper = satelliteMapper;
-        this.template = template;
     }
 
     public Mono<FetchSatelliteResponse> fetchAndUpdateSatellites(int size, Optional<Integer> chunkSizeOpt) {
