@@ -26,4 +26,7 @@ public class SatelliteConstants {
 
     public static final String NAME_PROPERTY = "name";
     public static final String DATE_PROPERTY = "date";
+
+    public static final int BACKOFF_MAX_ATTEMPTS = 3;
+    public static final int BACKOFF_DURATION = 3;
 }

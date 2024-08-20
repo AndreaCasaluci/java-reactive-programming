@@ -27,8 +27,10 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
 
 import javax.swing.*;
+import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,6 +96,8 @@ public class SatelliteService {
                         })
                         .subscribeOn(Schedulers.boundedElastic())
                 )
+                .retryWhen(Retry.backoff(SatelliteConstants.BACKOFF_MAX_ATTEMPTS, Duration.ofSeconds(SatelliteConstants.BACKOFF_DURATION))
+                        .onRetryExhaustedThrow(((retryBackoffSpec, retrySignal) -> new ExternalAPIException("Resource limit exceeded, retries exhausted"))))
                 .then(Mono.fromCallable(() -> {
                     log.info("End method - fetchAndUpdateSatellites - size: {}", size);
                     return new FetchSatelliteResponse(newCount.get(), updatedCount.get());
