@@ -18,6 +18,7 @@ This project is a Satellite Management System designed as an exercise to demonst
 - **Spring WebFlux:** To enable reactive programming and create non-blocking REST APIs
 - **Project Reactor:** The library that provides the `Mono` and `Flux` reactive types
 - **PostgreSQL:** The relational database used to persist satellite data
+- **Flyway:** Tool for Database Migrations
 - **Testcontainers:** For integration testing with a real PostgreSQL database in a Docker container
 - **JUnit 5:** For unit and integration testing
 - **Mockito:** For mocking dependencies in tests
