@@ -1,0 +1,27 @@
+version: '3.8'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: satellites
+      POSTGRES_USER: poc
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+
+  app:
+    image: satellite_management_system:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - R2DBC_DATABASE_URL=r2dbc:postgresql://postgres:5432/satellites
+      - R2DBC_DATABASE_USERNAME=poc
+      - R2DBC_DATABASE_PASSWORD=password
+      - JDBC_DATABASE_URL=jdbc:postgresql://postgres:5432/satellites
+      - JDBC_DATABASE_USERNAME=poc
+      - JDBC_DATABASE_PASSWORD=password
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
