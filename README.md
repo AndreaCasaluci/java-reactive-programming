@@ -10,7 +10,7 @@ This project is a Satellite Management System designed as an exercise to demonst
 - **Usage of Reactor (Mono/Flux):**
     - **Mono:** Used for operations that produce at most one item (e.g., fetching a single satellite);
     - **Flux:** Used for operations that produce zero to many items (e.g., fetching a list of satellites);
-- **Parallel Processing:** The project demonstrates how to process multiple tasks concurrently, using Reactor's `parallel()` and `flatMap()` operators to maximize throughput while maintaining non-blocking I/of
+- **Parallel Processing:** The project demonstrates how to process multiple tasks concurrently, using Reactor's `parallel()` and `flatMap()` operators to maximize throughput while maintaining non-blocking I/O
 - **Integration with External API:** The system fetches satellite data from an [external API](https://tle.ivanstanojevic.me/api/tle/), handling potential rate limits and failures gracefully using reactive patterns
 ## Technologies Used
 - **Java 17:** The core language for developement
